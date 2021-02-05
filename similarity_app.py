@@ -6,12 +6,14 @@ import math
 import re
 import base64
 from collections import Counter
+# This is a dash web application this layout consists all the web ui that was implemented on the app itself. 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], className='pretty_container',
                                                               style={'text-align': 'center'}),
-                                                     # Column_name field
+                                                     # Name header for first text box
                                                      html.Div([html.H4("Text1")], className='pretty_container'),
+                                                     #To put any text directly on the ui a text box is created using this
                                                      html.Div(
                                                          [dcc.Textarea(id="text1",
                                                                        placeholder="enter text",
@@ -26,6 +28,7 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                                               'resize': 'none'})], className='pretty_container'),
 
                                                      html.Div([html.H4("OR")], className='pretty_container',style={'text-align': 'center'}),
+                                                     #To upload a text file with content use dcc.Upload
                                                      html.Div([
                                                         dcc.Upload(
                                                             id='upload-text1',
@@ -47,7 +50,9 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                             # Allow multiple files to be uploaded
                                                             multiple=False
                                                         )]),
+                                                     # Name header for second text box
                                                      html.Div([html.H4("Text2")], className='pretty_container'),
+                                                     #To put any text directly on the ui a text box is created using this
                                                      html.Div(
                                                          [dcc.Textarea(id="text2",
                                                                        placeholder="enter text",
@@ -62,6 +67,7 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                                               'resize': 'none'})],
                                                          className='pretty_container'),
                                                      html.Div([html.H4("OR")], className='pretty_container',style={'text-align': 'center'}),
+                                                     #To upload a text file with content use dcc.Upload
                                                      html.Div([
                                                         dcc.Upload(
                                                             id='upload-text2',
@@ -83,6 +89,7 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                             # Allow multiple files to be uploaded
                                                             multiple=False
                                                         )]),
+                                                     #Final result which has information similarity between the texts is present here
                                                      html.Div(id="text_compare", className='pretty_container',
                                                               style={'border': '1px solid',
                                                                      'background-color': '#eee2c6',
@@ -90,6 +97,7 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                                      'border-radius': '10px',
                                                                      'padding': '10px',
                                                                      'box-shadow': '1px 1px 1px 1px grey'}),
+                                                     #A button that actually starts the application
                                                      html.Div([html.Button("RUN(click-here)", id="check-button",
                                                                            style={'font-size': '20px',
                                                                                   'text-align': 'center',
@@ -107,15 +115,17 @@ app.layout = html.Div([html.Div([html.Div([html.H3("TEXT SIMILARTIES APP")], cla
                                                  'border-radius': '10px', 'background-color': '#adbce6',
                                                  'box-shadow': '1px 1px 1px 1px grey',
                                                  'padding': '28px'})
-def text_conv_vector(text):
+def text_conv_vector(text): #To convert all texts to list of words and create a dictory with counts of each word as keys and values
     words = re.compile(r"\w+") #to find all words in a text
     return Counter([x.lower() for x in words.findall(text)])
-def clicked(ctx):
+  
+def clicked(ctx): #To check if the button on the web application is pressed or not
     if not ctx.triggered or not ctx.triggered[0]['value']:
         return None
     else:
         return ctx.triggered[0]['prop_id'].split('.')[0]
 
+# call back to POST the content of a file to the text area buy GET through dcc.upload
 @app.callback(
     Output('text1', 'value'),
     [Input('upload-text1', 'contents')]
@@ -124,6 +134,8 @@ def uploaded_text(list_of_contents_text1):
     content_type1, content_string1 = list_of_contents_text1.split(',')
     decoded = base64.b64decode(content_string1)
     return decoded.decode('utf-8')
+  
+# call back to POST the content of a file to the text area buy GET through dcc.upload
 @app.callback(
     Output('text2', 'value'),
     [Input('upload-text2', 'contents')]
@@ -133,12 +145,12 @@ def uploaded_text(list_of_contents_text2):
     decoded = base64.b64decode(content_string1)
     return decoded.decode('utf-8')
 
-
+#call back to GET text values from text boxes as inputs and posting them to a cosine function that can give similarity percetage POST back to the result area on the layout
 @app.callback(
     Output('text_compare', 'children'),
     [Input("check-button", "n_clicks")],
     [State("text1", "value"), State("text2", "value")])
-def text_similarities(n, text1, text2):
+def text_similarities(n, text1, text2): # calculates the similarity by measuring the cosine of the angle between two vectors using (A . B)/(||A|| ||B||)
     user_clicked = clicked(dash.callback_context)
     # print(u'''clicked = {}'''.format(user_clicked))
     if (n is not None) and (user_clicked == "check-button"):
