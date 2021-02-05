@@ -1,0 +1,3 @@
+Start the docker application and after moving to the DOCKER file location using cd in command prompt use this command
+
+==>docker build -t similarties_app && docker run -p 8080:5000 similarties_app
